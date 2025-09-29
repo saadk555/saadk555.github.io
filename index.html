@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetworkingWith.Me - Architecting Ventures</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #f0f0f0;
+            overflow-x: hidden;
+        }
+        /* Custom blue color - changed to a more vibrant cyan/blue */
+        :root {
+            --electric-blue: #00BFFF; /* DeepSkyBlue */
+            --dark-charcoal: #111111;
+        }
+        .text-electric-blue { color: var(--electric-blue); }
+        .bg-electric-blue { background-color: var(--electric-blue); }
+        .border-electric-blue { border-color: var(--electric-blue); }
+        
+        /* For the typing cursor effect */
+        .typing::after {
+            content: '|';
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            from, to { color: transparent; }
+            50% { color: var(--electric-blue); }
+        }
+
+        /* 3D background canvas */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0; /* Behind content but allows interaction */
+        }
+
+        /* Custom glassmorphism effect for cards */
+        .glass-card {
+            background: rgba(17, 17, 17, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Modal styles */
+        .modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-[#0a0a0a]">
+
+    <!-- 3D Background Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- Main Content Wrapper -->
+    <div class="relative z-10">
+
+        <!-- SECTION 1: HERO -->
+        <section id="hero" class="min-h-screen flex flex-col justify-center items-center text-center p-4">
+            <div class="max-w-4xl mx-auto">
+                <h1 id="name" class="text-4xl md:text-6xl font-bold text-white mb-4 typing">ALEX VANCE</h1>
+                <h2 id="tagline" class="text-5xl md:text-8xl font-black text-white uppercase leading-none mb-6">
+                    <span class="text-electric-blue">Architecting</span> Ventures<br/>
+                    <span class="text-electric-blue">Engineering</span> Growth
+                </h2>
+                <p id="subheading" class="max-w-2xl mx-auto text-lg md:text-xl text-gray-300 mb-10">
+                    Entrepreneurial Software Engineer connecting technical expertise with market opportunities.
+                </p>
+                <a id="cta-button" href="#contact" class="inline-block bg-transparent border-2 border-electric-blue text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-electric-blue hover:text-black transition-all duration-300">
+                    Let's Build Together
+                </a>
+            </div>
+        </section>
+
+        <!-- SECTION 2: CORE PHILOSOPHY -->
+        <section id="philosophy" class="py-20 md:py-32 px-4">
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="gsap-fade-up glass-card p-8 rounded-xl text-center transition-all duration-300 hover:border-electric-blue hover:-translate-y-2">
+                    <div class="flex justify-center mb-4">
+                        <svg class="w-12 h-12 text-electric-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Technical Acumen</h3>
+                    <p class="text-gray-300">I build scalable, secure, and elegant software solutions.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="gsap-fade-up glass-card p-8 rounded-xl text-center transition-all duration-300 hover:border-electric-blue hover:-translate-y-2">
+                    <div class="flex justify-center mb-4">
+                       <svg class="w-12 h-12 text-electric-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Business Strategy</h3>
+                    <p class="text-gray-300">I translate complex market needs into actionable roadmaps.</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="gsap-fade-up glass-card p-8 rounded-xl text-center transition-all duration-300 hover:border-electric-blue hover:-translate-y-2">
+                    <div class="flex justify-center mb-4">
+                        <svg class="w-12 h-12 text-electric-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Venture Creation</h3>
+                    <p class="text-gray-300">I thrive on building new ventures from zero to one.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PORTFOLIO -->
+        <section id="portfolio" class="py-20 md:py-32 px-4">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="gsap-fade-up text-4xl md:text-5xl font-bold text-center mb-12">Case Studies: From Concept to Capital</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Project 1 -->
+                    <div class="gsap-fade-up glass-card rounded-xl overflow-hidden cursor-pointer group" onclick="openModal('modal1')">
+                        <div class="p-8">
+                            <h3 class="text-2xl font-bold text-white mb-1">Fin-Alytics AI</h3>
+                            <p class="text-electric-blue font-semibold mb-4">FinTech // AI-Powered Analytics</p>
+                            <p class="text-gray-300 mb-6">An AI-driven platform to provide real-time portfolio analysis and risk assessment for boutique investment firms.</p>
+                            <span class="font-semibold text-white group-hover:text-electric-blue transition-colors duration-300">View Case Study &rarr;</span>
+                        </div>
+                    </div>
+                    <!-- Project 2 -->
+                    <div class="gsap-fade-up glass-card rounded-xl overflow-hidden cursor-pointer group" onclick="openModal('modal2')">
+                        <div class="p-8">
+                            <h3 class="text-2xl font-bold text-white mb-1">ConnectSphere</h3>
+                            <p class="text-electric-blue font-semibold mb-4">DevOps // Scalable Cloud Solutions</p>
+                            <p class="text-gray-300 mb-6">Architected a multi-cloud CI/CD pipeline for a SaaS startup, reducing deployment times by 80% and improving system uptime.</p>
+                            <span class="font-semibold text-white group-hover:text-electric-blue transition-colors duration-300">View Case Study &rarr;</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: BIO -->
+        <section id="bio" class="py-20 md:py-32 px-4 bg-[#111111]">
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-12 items-center">
+                <div id="lottie-container" class="md:col-span-2 h-64 md:h-full"></div>
+                <div class="md:col-span-3 gsap-fade-up">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">The Vision</h2>
+                    <p class="text-lg text-gray-300 leading-relaxed mb-4">
+                        Entrepreneurial Software Engineer with 3+ years of experience in Python development, DevOps, and driving business growth and sales. Skilled in creating scalable, secure solutions and fostering innovation by connecting technical expertise with market opportunities. Proven success in remote client engagement and startup ventures.
+                    </p>
+                    <p class="text-lg text-gray-300 leading-relaxed">
+                        My goal is to build and scale companies that define the future. I am currently seeking ambitious investors and partners to join me on this journey.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: CONTACT -->
+        <section id="contact" class="py-20 md:py-32 px-4">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="gsap-fade-up text-4xl md:text-6xl font-black text-white mb-4">Have an idea?<br>Need a technical partner?</h2>
+                <h3 class="gsap-fade-up text-3xl md:text-5xl font-bold text-electric-blue mb-12">Let's connect.</h3>
+                <div class="gsap-fade-up flex justify-center items-center space-x-6">
+                    <!-- Email -->
+                    <a href="mailto:hello@networkingwith.me" class="text-gray-400 hover:text-white transition-colors duration-300">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"></path></svg>
+                    </a>
+                    <!-- LinkedIn -->
+                    <a href="#" target="_blank" class="text-gray-400 hover:text-white transition-colors duration-300">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"></path></svg>
+                    </a>
+                    <!-- GitHub -->
+                     <a href="#" target="_blank" class="text-gray-400 hover:text-white transition-colors duration-300">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- MODALS -->
+    <!-- Modal 1 -->
+    <div id="modal1" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-80" onclick="closeModal('modal1')"></div>
+        <div class="modal-content glass-card rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto z-10 scale-95 opacity-0">
+            <div class="p-8 md:p-12">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-3xl font-bold text-white mb-1">Fin-Alytics AI</h3>
+                        <p class="text-electric-blue font-semibold mb-4">FinTech // AI-Powered Analytics</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-white text-3xl leading-none" onclick="closeModal('modal1')">&times;</button>
+                </div>
+                <div class="prose prose-invert prose-lg mt-6 text-gray-300">
+                    <p><strong>The Challenge:</strong> Building a real-time data processing engine for investment portfolio analysis that could handle millions of data points with minimal latency.</p>
+                    <p><strong>My Role:</strong> As Lead Software Engineer & Technical Co-founder, I architected the core Python backend, implemented a scalable DevOps pipeline on AWS, and was instrumental in early-stage client acquisition and technical sales demos.</p>
+                    <p><strong>Tech Stack:</strong> Python, Django, Docker, Kubernetes, AWS (EC2, S3, RDS), PostgreSQL, Redis.</p>
+                    <p><strong>The Outcome:</strong> Successfully processed 10M+ data points daily, leading to a 30% increase in analytical efficiency for our pilot clients and securing our pre-seed funding round of $500k.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal 2 -->
+    <div id="modal2" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-80" onclick="closeModal('modal2')"></div>
+        <div class="modal-content glass-card rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto z-10 scale-95 opacity-0">
+            <div class="p-8 md:p-12">
+                <div class="flex justify-between items-start">
+                     <div>
+                        <h3 class="text-3xl font-bold text-white mb-1">ConnectSphere</h3>
+                        <p class="text-electric-blue font-semibold mb-4">DevOps // Scalable Cloud Solutions</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-white text-3xl leading-none" onclick="closeModal('modal2')">&times;</button>
+                </div>
+                 <div class="prose prose-invert prose-lg mt-6 text-gray-300">
+                    <p><strong>The Challenge:</strong> A rapidly growing B2B SaaS company faced inconsistent deployments and frequent downtime, hindering their ability to scale and retain enterprise clients.</p>
+                    <p><strong>My Role:</strong> I was brought on as a DevOps consultant to design and implement a robust CI/CD and infrastructure-as-code strategy. My work involved creating automated pipelines and deploying monitoring solutions.</p>
+                    <p><strong>Tech Stack:</strong> Terraform, Ansible, Jenkins, Docker, Kubernetes, Google Cloud Platform (GKE, Cloud Build), Prometheus, Grafana.</p>
+                    <p><strong>The Outcome:</strong> Reduced manual deployment time from 4 hours to 15 minutes. Increased system uptime from 99.5% to 99.99%. This stability was a key factor in the company securing a $2M Series A funding round.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // --- HERO ANIMATION ---
+            const nameEl = document.getElementById('name');
+            const originalName = 'ALEX VANCE';
+            nameEl.textContent = '';
+            
+            // Set initial states for GSAP
+            gsap.set(['#tagline', '#subheading', '#cta-button'], { opacity: 0, y: 20 });
+
+            let i = 0;
+            function typeName() {
+                if (i < originalName.length) {
+                    nameEl.textContent += originalName.charAt(i);
+                    i++;
+                    setTimeout(typeName, 150);
+                } else {
+                    nameEl.classList.remove('typing');
+                    // GSAP timeline for fade in animations after typing
+                    const tl = gsap.timeline({ defaults: { ease: 'power3.out' }});
+                    tl.to('#tagline', { opacity: 1, y: 0, duration: 1 })
+                      .to('#subheading', { opacity: 1, y: 0, duration: 1 }, "-=0.7")
+                      .to('#cta-button', { opacity: 1, y: 0, duration: 1 }, "-=0.7");
+                }
+            }
+            setTimeout(typeName, 500); // Initial delay
+
+            // --- GSAP SCROLL-TRIGGERED ANIMATIONS ---
+            const fadeUpElements = document.querySelectorAll('.gsap-fade-up');
+            fadeUpElements.forEach((el, index) => {
+                gsap.from(el, {
+                    scrollTrigger: {
+                        trigger: el,
+                        start: 'top 85%',
+                        toggleActions: 'play none none none',
+                    },
+                    opacity: 0,
+                    y: 50,
+                    duration: 1,
+                    ease: 'power3.out',
+                    delay: (index % 3) * 0.2
+                });
+            });
+
+            // --- LOTTIE BIO CHARACTER ANIMATION ---
+            const lottieContainer = document.getElementById('lottie-container');
+            const lottieInstance = lottie.loadAnimation({
+                container: lottieContainer,
+                renderer: 'svg',
+                loop: true,
+                autoplay: false,
+                // A futuristic character/robot animation
+                path: 'https://assets4.lottiefiles.com/packages/lf20_v0h5l2p9.json' 
+            });
+
+            ScrollTrigger.create({
+                trigger: '#bio',
+                start: 'top center',
+                onEnter: () => lottieInstance.play(),
+                onLeaveBack: () => lottieInstance.pause()
+            });
+
+            // --- THREE.JS SCI-FI BACKGROUND ---
+            let scene, camera, renderer, cubesGroup;
+            let mouse = new THREE.Vector2();
+
+            function initThreeJS() {
+                const container = document.getElementById('canvas-container');
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 50;
+
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(renderer.domElement);
+                
+                // Create a group to hold all cubes
+                cubesGroup = new THREE.Group();
+
+                const cubeGeometry = new THREE.BoxGeometry(3, 3, 3);
+                const cubeMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 });
+
+                for (let i = 0; i < 40; i++) {
+                    const edges = new THREE.EdgesGeometry(cubeGeometry);
+                    const line = new THREE.LineSegments(edges, cubeMaterial);
+                    
+                    line.position.x = (Math.random() - 0.5) * 150;
+                    line.position.y = (Math.random() - 0.5) * 150;
+                    line.position.z = (Math.random() - 0.5) * 150;
+
+                    line.rotation.x = Math.random() * Math.PI;
+                    line.rotation.y = Math.random() * Math.PI;
+
+                    cubesGroup.add(line);
+                }
+                scene.add(cubesGroup);
+
+                window.addEventListener('resize', onWindowResize);
+                document.addEventListener('mousemove', onMouseMove);
+            }
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            function onMouseMove(event) {
+                // Normalize mouse position from -1 to 1
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Animate cubes
+                cubesGroup.children.forEach(cube => {
+                    cube.rotation.x += 0.001;
+                    cube.rotation.y += 0.001;
+                });
+
+                // Move camera group based on mouse
+                const targetX = mouse.x * 5;
+                const targetY = mouse.y * 5;
+                cubesGroup.rotation.y += 0.05 * (targetX - cubesGroup.rotation.y);
+                cubesGroup.rotation.x += 0.05 * (targetY - cubesGroup.rotation.x);
+
+                renderer.render(scene, camera);
+            }
+
+            initThreeJS();
+            animate();
+        });
+
+        // --- MODAL LOGIC ---
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            
+            const backdrop = modal.querySelector('.modal-backdrop');
+            const content = modal.querySelector('.modal-content');
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            setTimeout(() => {
+                if (backdrop) backdrop.style.opacity = '1';
+                if (content) {
+                    content.style.opacity = '1';
+                    content.style.transform = 'scale(1)';
+                }
+            }, 10);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            
+            const backdrop = modal.querySelector('.modal-backdrop');
+            const content = modal.querySelector('.modal-content');
+            
+            if (backdrop) backdrop.style.opacity = '0';
+            if (content) {
+                 content.style.opacity = '0';
+                 content.style.transform = 'scale(0.95)';
+            }
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                 document.body.style.overflow = 'auto';
+            }, 300);
+        }
+    </script>
+</body>
+</html>
+

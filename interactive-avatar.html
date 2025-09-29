@@ -1,0 +1,275 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Interactive Cartoon Avatar — Pointer Reactive</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root { --bg:#0f1724; --line:#dce7f7; --accent:#9fb8ff; --skin:#ffdcb2; --hair:#1f1f2e; --shirt:#111827; }
+  html,body{height:100%;margin:0;background:var(--bg);display:flex;align-items:center;justify-content:center;font-family:Inter,system-ui,Arial;}
+  #stage{width:760px;height:520px;touch-action:none;display:block;position:relative;}
+  svg{width:100%;height:100%;display:block;overflow:visible}
+  /* subtle shadow */
+  #card { filter: drop-shadow(0 8px 24px rgba(0,0,0,0.45)); border-radius:16px; }
+  /* make interactive cursor hint */
+  #wrap{cursor:grab}
+  #wrap:active{cursor:grabbing}
+  /* small UI hint */
+  .hint{position:absolute;left:14px;bottom:10px;color:rgba(255,255,255,0.6);font-size:12px}
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div id="wrap">
+      <!-- SVG avatar & background -->
+      <svg id="avatarSVG" viewBox="0 0 760 520" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+        <!-- background gradient -->
+        <defs>
+          <linearGradient id="bgGrad" x1="0" x2="1">
+            <stop offset="0" stop-color="#071028" />
+            <stop offset="1" stop-color="#0f1724" />
+          </linearGradient>
+
+          <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#000" flood-opacity="0.45"/>
+          </filter>
+        </defs>
+
+        <!-- background -->
+        <rect x="0" y="0" width="760" height="520" fill="url(#bgGrad)" rx="14" ry="14" id="card"/>
+
+        <!-- lined cubes group (parallax) -->
+        <g id="cubes" transform="translate(0,0)" opacity="0.9">
+          <!-- repeated wireframe cubes, different positions -->
+          <g transform="translate(90,60)" stroke="#2b3a55" stroke-width="1.2" fill="none" opacity="0.7">
+            <rect x="0" y="0" width="66" height="66" />
+            <path d="M0,0 L22,-18 L88,-18 L66,0 Z" />
+            <path d="M66,0 L66,66 L88,48" />
+            <path d="M22,-18 L22,48" />
+          </g>
+          <g transform="translate(560,90) scale(0.85)" stroke="#243246" stroke-width="1.1" fill="none" opacity="0.6">
+            <rect x="0" y="0" width="56" height="56" />
+            <path d="M0,0 L18,-16 L74,-16 L56,0 Z" />
+            <path d="M56,0 L56,56 L74,40" />
+            <path d="M18,-16 L18,40" />
+          </g>
+          <g transform="translate(380,30) scale(0.9)" stroke="#2b3a55" stroke-width="1" fill="none" opacity="0.5">
+            <rect x="0" y="0" width="48" height="48" />
+            <path d="M0,0 L15,-12 L63,-12 L48,0 Z" />
+            <path d="M48,0 L48,48 L63,36" />
+            <path d="M15,-12 L15,36" />
+          </g>
+          <g transform="translate(220,420) scale(0.7)" stroke="#243246" stroke-width="1" fill="none" opacity="0.45">
+            <rect x="0" y="0" width="48" height="48" />
+            <path d="M0,0 L15,-12 L63,-12 L48,0 Z" />
+            <path d="M48,0 L48,48 L63,36" />
+            <path d="M15,-12 L15,36" />
+          </g>
+        </g>
+
+        <!-- center group for head + body (we'll transform this as head tilt) -->
+        <g id="character" transform="translate(190,60)">
+          <!-- shirt -->
+          <g id="shirt" transform="translate(60,240)">
+            <path d="M40 10 C10 10 0 60 0 80 L260 80 C260 60 250 10 220 10 L160 20 Z" fill="#0b1220" stroke="#0b1220"/>
+            <!-- collar line -->
+            <path d="M80 20 Q120 40 160 20" stroke="#1f2937" stroke-width="2" fill="none" opacity="0.6"/>
+          </g>
+
+          <!-- neck -->
+          <ellipse id="neck" cx="170" cy="200" rx="32" ry="40" fill="#f7d9b2" />
+
+          <!-- head group (we will rotate/translate slightly to simulate tilt) -->
+          <g id="head" transform="translate(70,30)">
+            <!-- hair (stylized) -->
+            <path id="hair" d="M48 36 C28 10 10 6 0 28 C-2 40 12 16 36 30 C70 50 110 36 120 22 C110 40 90 72 48 36 Z" fill="#11121a" />
+            <!-- face -->
+            <ellipse id="face" cx="140" cy="120" rx="92" ry="112" fill="#ffdcb2" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>
+            <!-- left eyebrow -->
+            <path d="M86 100 Q110 92 132 96" stroke="#5b4b3b" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.6"/>
+            <!-- right eyebrow -->
+            <path d="M180 100 Q210 90 232 94" stroke="#5b4b3b" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.6"/>
+            <!-- eyes group -->
+            <g id="eyes" transform="translate(0,0)">
+              <!-- left eye white -->
+              <ellipse id="eyeL" cx="122" cy="134" rx="16" ry="12" fill="#fff" stroke="#d6d6d6"/>
+              <!-- left pupil -->
+              <circle id="pupilL" cx="122" cy="136" r="6" fill="#1a1a1a"/>
+              <!-- right eye white -->
+              <ellipse id="eyeR" cx="206" cy="134" rx="16" ry="12" fill="#fff" stroke="#d6d6d6"/>
+              <!-- right pupil -->
+              <circle id="pupilR" cx="206" cy="136" r="6" fill="#1a1a1a"/>
+            </g>
+
+            <!-- nose -->
+            <path d="M168 152 Q170 170 158 176" stroke="#c08d6b" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+            <!-- mouth -->
+            <path id="mouth" d="M138 194 Q170 204 198 194" stroke="#b05f56" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+
+            <!-- cheek sparkle (cute touch) -->
+            <circle cx="100" cy="170" r="6" fill="#ffd0b3" opacity="0.9"/>
+            <!-- subtle line-art outline -->
+            <path d="M60 120 Q90 30 156 18 Q220 10 260 60 Q280 110 210 200 Q150 260 80 230 Q64 200 60 120 Z" fill="none" stroke="rgba(0,0,0,0.06)"/>
+          </g>
+
+          <!-- small hand for wave (hidden initially, will animate on tap) -->
+          <g id="hand" transform="translate(250,220) rotate(8)">
+            <path id="arm" d="M0 0 Q26 -6 54 6" stroke="#f7d9b2" stroke-width="16" stroke-linecap="round" fill="none" opacity="1"/>
+            <circle cx="54" cy="6" r="12" fill="#f7d9b2"/>
+          </g>
+
+        </g>
+
+      </svg>
+    </div>
+
+    <div class="hint">Move mouse / touch to interact • Click/tap to wave</div>
+  </div>
+
+<script>
+/*
+ Interactive behavior:
+ - eyes follow cursor (pupils move inside eye area)
+ - head group translates & rotates slightly (tilt) based on pointer
+ - background cubes parallax
+ - click/tap triggers short wave (hand rotate)
+ Smooth transitions use simple lerp for inertia
+*/
+(function(){
+  const svg = document.getElementById('avatarSVG');
+  const wrap = document.getElementById('wrap');
+  const eyes = { pL: svg.querySelector('#pupilL'), pR: svg.querySelector('#pupilR'), eyeL: svg.querySelector('#eyeL'), eyeR: svg.querySelector('#eyeR') };
+  const headGroup = svg.querySelector('#head');
+  const char = svg.querySelector('#character');
+  const cubes = svg.querySelector('#cubes');
+  const hand = svg.querySelector('#hand');
+
+  // state
+  let target = { x: 0, y: 0 };
+  let current = { x: 0, y: 0 };
+  let headTarget = { tx: 0, ty: 0, rot: 0 };
+  let headCurrent = { tx: 0, ty: 0, rot: 0 };
+  let cubeTarget = { x:0, y:0 };
+  let cubeCurrent = { x:0, y:0 };
+
+  // mouse/touch handlers
+  function handlePointer(clientX, clientY) {
+    const rect = svg.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top + rect.height/2;
+    const dx = (clientX - cx) / (rect.width/2); // -1..1
+    const dy = (clientY - cy) / (rect.height/2); // -1..1
+
+    target.x = dx; target.y = dy;
+
+    // head movement (smaller)
+    headTarget.tx = dx * 10; // px
+    headTarget.ty = dy * 8;
+    headTarget.rot = dx * -6; // degrees rotation
+
+    // cubes parallax (inverse, larger)
+    cubeTarget.x = dx * -16;
+    cubeTarget.y = dy * -10;
+  }
+
+  // click/tap wave
+  let waving = false;
+  function doWave() {
+    if (waving) return;
+    waving = true;
+    // animate small rotation sequence using requestAnimationFrame loop
+    const seq = [
+      { dur: 80, rot: -32 },
+      { dur: 120, rot: 20 },
+      { dur: 120, rot: -18 },
+      { dur: 120, rot: 14 },
+      { dur: 140, rot: 0 }
+    ];
+    let i=0;
+    function nextStep(){
+      if (i>=seq.length){ waving=false; return; }
+      const step = seq[i++];
+      const start = performance.now();
+      const startRot = parseFloat(hand.getAttribute('data-rot') || hand.getAttribute('transform')?.match(/rotate\((-?\d+)/)?.[1] || 8);
+      const endRot = step.rot;
+      function frame(t){
+        const p = Math.min(1,(t-start)/step.dur);
+        const cur = startRot + (endRot - startRot) * (0.5 - 0.5*Math.cos(Math.PI*p)); // smooth ease
+        hand.setAttribute('transform', `translate(250,220) rotate(${cur})`);
+        hand.setAttribute('data-rot', cur);
+        if (p<1) requestAnimationFrame(frame);
+        else nextStep();
+      }
+      requestAnimationFrame(frame);
+    }
+    nextStep();
+  }
+
+  // pointer events
+  window.addEventListener('mousemove', (e) => {
+    handlePointer(e.clientX, e.clientY);
+  });
+  window.addEventListener('touchmove', (e) => {
+    if (e.touches && e.touches[0]) handlePointer(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive:true});
+
+  // click/tap
+  svg.addEventListener('click', (e)=> {
+    doWave();
+  });
+
+  // small helper to clamp
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+  // lerp
+  function lerp(a,b,t){ return a + (b-a)*t; }
+
+  // animation loop
+  function raf(){
+    // smooth current target interpolation
+    current.x = lerp(current.x, target.x, 0.12);
+    current.y = lerp(current.y, target.y, 0.12);
+
+    headCurrent.tx = lerp(headCurrent.tx, headTarget.tx, 0.12);
+    headCurrent.ty = lerp(headCurrent.ty, headTarget.ty, 0.12);
+    headCurrent.rot = lerp(headCurrent.rot, headTarget.rot, 0.12);
+
+    cubeCurrent.x = lerp(cubeCurrent.x, cubeTarget.x, 0.08);
+    cubeCurrent.y = lerp(cubeCurrent.y, cubeTarget.y, 0.08);
+
+    // apply head transform (slight translation + rotation origin centered)
+    headGroup.setAttribute('transform', `translate(70,30) translate(${headCurrent.tx},${headCurrent.ty}) rotate(${headCurrent.rot}, 140, 120)`);
+
+    // eyes: map current.x/current.y to pupils movement inside eye bounds
+    // left eye center (122,136), right eye center (206,136); allow +-4px pupils movement horizontally, +-3px vertically
+    const pxRange = 5;
+    const pyRange = 3;
+    const pLx = 122 + clamp(current.x * pxRange, -pxRange, pxRange);
+    const pLy = 136 + clamp(current.y * pyRange, -pyRange, pyRange);
+    const pRx = 206 + clamp(current.x * pxRange, -pxRange, pxRange);
+    const pRy = 136 + clamp(current.y * pyRange, -pyRange, pyRange);
+
+    eyes.pL.setAttribute('cx', pLx);
+    eyes.pL.setAttribute('cy', pLy);
+    eyes.pR.setAttribute('cx', pRx);
+    eyes.pR.setAttribute('cy', pRy);
+
+    // subtle mouth / smile when pointer near center Y
+    const mouth = svg.querySelector('#mouth');
+    const smileScale = clamp(1 - Math.abs(current.x)*0.7 - Math.abs(current.y)*0.2, 0.7, 1.08);
+    mouth.setAttribute('transform', `translate(0,${(1-smileScale)*6}) scale(${smileScale})`);
+
+    // cubes parallax
+    cubes.setAttribute('transform', `translate(${cubeCurrent.x},${cubeCurrent.y})`);
+
+    requestAnimationFrame(raf);
+  }
+  raf();
+
+  // small responsive: center avatar on resize (optional)
+  window.addEventListener('resize', ()=>{ /* no-op for now */ });
+
+})();
+</script>
+</body>
+</html>
