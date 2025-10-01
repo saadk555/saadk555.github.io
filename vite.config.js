@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  base: '/saadk555.github.io/',
   build: {
     rollupOptions: {
       output: {
