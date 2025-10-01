@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NetworkingWith.Me - Architecting Ventures</title>
+    <title>NetworkingWith.Me - Saad Khan</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,6 +25,7 @@
         :root {
             --electric-blue: #00BFFF; /* DeepSkyBlue */
             --dark-charcoal: #111111;
+            --scan-color: #00d9ff;
         }
         .text-electric-blue { color: var(--electric-blue); }
         .bg-electric-blue { background-color: var(--electric-blue); }
@@ -47,7 +48,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 0; /* Behind content but allows interaction */
+            z-index: 0;
         }
 
         /* Custom glassmorphism effect for cards */
@@ -65,6 +66,161 @@
         .modal-content {
             transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
         }
+
+        /* --- Hologram Animation Styles --- */
+        #hologram-container .stage {
+            width: 100%;
+            max-width: 350px;
+            aspect-ratio: 420 / 720;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7), inset 0 0 1px 1px rgba(255,255,255,0.1);
+            background: #1a1d24;
+            perspective: 1500px;
+        }
+
+        #hologram-container .avatar {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #hologram-container #meshCanvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #hologram-container .scanner {
+            position: absolute;
+            left: -10%;
+            width: 120%;
+            height: 80px;
+            background: linear-gradient(180deg, rgba(0, 217, 255, 0) 0%, rgba(0, 217, 255, 0.6) 50%, rgba(0, 217, 255, 0) 100%);
+            transform: translateY(-100%);
+            filter: blur(20px);
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        #hologram-container .scanner::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 3px;
+            transform: translateY(-50%);
+            background: var(--scan-color);
+            box-shadow: 0 0 10px 2px var(--scan-color);
+        }
+
+        #hologram-container .vignette {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.5);
+        }
+
+        #hologram-container .controls {
+            position: absolute;
+            left: 8px; right: 8px; bottom: 8px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            pointer-events: auto;
+        }
+
+        #hologram-container .btn {
+            background: rgba(0, 217, 255, 0.1);
+            color: var(--scan-color);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        #hologram-container .btn:hover {
+            background: rgba(0, 217, 255, 0.25);
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+        #hologram-container .btn:active {
+            transform: scale(0.95);
+        }
+
+        #hologram-container .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--scan-color);
+            font-size: 14px;
+        }
+        
+        /* --- Company Slider Styles --- */
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .company-slider {
+            position: relative;
+            width: 100%;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+        }
+        .slide-track {
+            display: flex;
+            width: calc(250px * 10); /* 250px per image * 10 images (5 original + 5 duplicate) */
+            animation: scroll 40s linear infinite;
+        }
+        .slide {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 250px;
+            padding: 0 20px;
+        }
+        .slide img {
+            max-height: 64px; /* h-16 */
+            width: auto;
+            filter: grayscale(1) brightness(1.5) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .slide img:hover {
+            filter: grayscale(0) brightness(1) drop-shadow(0 6px 12px rgba(0, 217, 255, 0.4));
+            transform: scale(1.1);
+        }
+        .company-slider::before,
+        .company-slider::after {
+            background: linear-gradient(to right, rgba(10,10,10,1) 0%, rgba(10,10,10,0) 100%);
+            content: '';
+            height: 100%;
+            position: absolute;
+            width: 15%;
+            z-index: 2;
+        }
+        .company-slider::before {
+            left: 0;
+            top: 0;
+        }
+        .company-slider::after {
+            right: 0;
+            top: 0;
+            background: linear-gradient(to left, rgba(10,10,10,1) 0%, rgba(10,10,10,0) 100%);
+        }
+
     </style>
 </head>
 <body class="bg-[#0a0a0a]">
@@ -77,13 +233,13 @@
 
         <!-- SECTION 1: HERO -->
         <section id="hero" class="min-h-screen flex flex-col justify-center items-center text-center p-4">
-            <div class="max-w-4xl mx-auto">
-                <h1 id="name" class="text-4xl md:text-6xl font-bold text-white mb-4 typing">ALEX VANCE</h1>
-                <h2 id="tagline" class="text-5xl md:text-8xl font-black text-white uppercase leading-none mb-6">
-                    <span class="text-electric-blue">Architecting</span> Ventures<br/>
-                    <span class="text-electric-blue">Engineering</span> Growth
+            <div class="max-w-5xl mx-auto">
+                <h1 id="name" class="text-2xl md:text-3xl font-bold text-gray-300 mb-6 tracking-widest uppercase typing"></h1>
+                <h2 id="tagline" class="text-5xl md:text-7xl font-black text-white uppercase leading-tight mb-8">
+                    From Code to <span class="text-electric-blue">Clients</span><br/>
+                    Bridging Tech & Business Growth
                 </h2>
-                <p id="subheading" class="max-w-2xl mx-auto text-lg md:text-xl text-gray-300 mb-10">
+                <p id="subheading" class="max-w-2xl mx-auto text-lg md:text-xl text-gray-400 mb-10">
                     Entrepreneurial Software Engineer connecting technical expertise with market opportunities.
                 </p>
                 <a id="cta-button" href="#contact" class="inline-block bg-transparent border-2 border-electric-blue text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-electric-blue hover:text-black transition-all duration-300">
@@ -149,7 +305,30 @@
             </div>
         </section>
 
-        <!-- SECTION: SKILLS GLOBE -->
+        <!-- SECTION: COMPANY SLIDER -->
+        <section id="companies" class="py-20 md:py-32">
+            <div class="max-w-6xl mx-auto text-center px-4">
+                <h2 class="gsap-fade-up text-4xl md:text-5xl font-bold mb-12">My Companies & Companies I've Worked With</h2>
+            </div>
+            <div class="company-slider">
+                <div class="slide-track">
+                    <!-- Logos -->
+                    <div class="slide"><img src="https://i.ibb.co/WvtP7qpm/pekisa-linkedin.png" alt="Pekisa logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/KxCfm79z/bluxech-full-2.png" alt="Bluxech logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/WN7wDFCJ/Hatch-Pak-1.png" alt="Hatch-Pak logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/bM5TvvGj/default-04d56222.webp" alt="Toptal logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/99YdZ3Vh/Fiverr-Logo.png" alt="Fiverr logo"></div>
+                    <!-- Duplicated Logos for seamless loop -->
+                    <div class="slide"><img src="https://i.ibb.co/WvtP7qpm/pekisa-linkedin.png" alt="Pekisa logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/KxCfm79z/bluxech-full-2.png" alt="Bluxech logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/WN7wDFCJ/Hatch-Pak-1.png" alt="Hatch-Pak logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/bM5TvvGj/default-04d56222.webp" alt="Toptal logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/99YdZ3Vh/Fiverr-Logo.png" alt="Fiverr logo"></div>
+                </div>
+            </div>
+        </section>
+
+    <!-- SECTION: SKILLS GLOBE -->
         <section id="skills" class="py-20 md:py-32 px-4">
             <div id="skills-globe-container" class="max-w-6xl mx-auto text-center">
                 <h2 class="gsap-fade-up text-4xl md:text-5xl font-bold mb-4">My DevOps Skills and Tools</h2>
@@ -203,7 +382,18 @@
         <!-- SECTION 4: BIO -->
         <section id="bio" class="py-20 md:py-32 px-4 bg-[#111111]">
             <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-12 items-center">
-                <div id="lottie-container" class="md:col-span-2 h-64 md:h-full"></div>
+                <!-- Hologram Animation Container -->
+                <div id="hologram-container" class="md:col-span-2 flex justify-center items-center h-full min-h-[400px] md:min-h-0">
+                    <div class="stage" id="hologram-stage">
+                        <img class="avatar" id="avatarImg" src="https://i.ibb.co/5gtyjvCW/Untitled-design-2.png" alt="avatar" crossorigin="anonymous">
+                        <canvas id="meshCanvas"></canvas>
+                        <div class="scanner" id="scanner"></div>
+                        <div class="vignette"></div>
+                        <div class="controls">
+                        </div>
+                        <div class="loading" id="loading">Initializing...</div>
+                    </div>
+                </div>
                 <div class="md:col-span-3 gsap-fade-up">
                     <h2 class="text-4xl md:text-5xl font-bold mb-6">The Vision</h2>
                     <p class="text-lg text-gray-300 leading-relaxed mb-4">
@@ -297,10 +487,9 @@
 
             // --- HERO ANIMATION ---
             const nameEl = document.getElementById('name');
-            const originalName = 'ALEX VANCE';
+            const originalName = 'MUHAMMAD SAAD KHAN'; // <-- ENSURE THIS IS UPDATED
             nameEl.textContent = '';
             
-            // Set initial states for GSAP
             gsap.set(['#tagline', '#subheading', '#cta-button'], { opacity: 0, y: 20 });
 
             let i = 0;
@@ -311,14 +500,13 @@
                     setTimeout(typeName, 150);
                 } else {
                     nameEl.classList.remove('typing');
-                    // GSAP timeline for fade in animations after typing
                     const tl = gsap.timeline({ defaults: { ease: 'power3.out' }});
                     tl.to('#tagline', { opacity: 1, y: 0, duration: 1 })
                       .to('#subheading', { opacity: 1, y: 0, duration: 1 }, "-=0.7")
                       .to('#cta-button', { opacity: 1, y: 0, duration: 1 }, "-=0.7");
                 }
             }
-            setTimeout(typeName, 500); // Initial delay
+            setTimeout(typeName, 500);
 
             // --- GSAP SCROLL-TRIGGERED ANIMATIONS ---
             const fadeUpElements = document.querySelectorAll('.gsap-fade-up');
@@ -355,23 +543,14 @@
             }
 
 
-            // --- LOTTIE BIO CHARACTER ANIMATION ---
-            const lottieContainer = document.getElementById('lottie-container');
-            const lottieInstance = lottie.loadAnimation({
-                container: lottieContainer,
-                renderer: 'svg',
-                loop: true,
-                autoplay: false,
-                // A futuristic character/robot animation - UPDATED to a working URL
-                path: 'https://lottie.host/825b90a6-1211-4131-9f6a-4d4001c4d217/633u3kSFsI.json' 
-            });
+            // --- HOLOGRAPHIC REVEAL ANIMATION ---
+            try {
+                initHologramAnimation();
+            } catch(e) {
+                console.error("Hologram animation failed to start:", e);
+                document.getElementById('hologram-container').style.display = 'none';
+            }
 
-            ScrollTrigger.create({
-                trigger: '#bio',
-                start: 'top center',
-                onEnter: () => lottieInstance.play(),
-                onLeaveBack: () => lottieInstance.pause()
-            });
 
             // --- THREE.JS SCI-FI BACKGROUND ---
             try {
@@ -450,6 +629,203 @@
                 }
             }
         });
+        
+        // --- HOLOGRAPHIC REVEAL ANIMATION LOGIC ---
+        function initHologramAnimation() {
+            const hologramStage = document.getElementById('hologram-stage');
+            const avatar = document.getElementById('avatarImg');
+            const canvas = document.getElementById('meshCanvas');
+            const scanner = document.getElementById('scanner');
+            const replayBtn = document.getElementById('replayBtn');
+            const loading = document.getElementById('loading');
+
+            let hologramScene, hologramCamera, hologramRenderer;
+            let meshGroup, wireframes = [];
+            let hiddenCtx;
+            let gridCols = 30, gridRows = 50;
+            
+            function initThree() {
+                hologramScene = new THREE.Scene();
+                const rect = hologramStage.getBoundingClientRect();
+                
+                hologramCamera = new THREE.PerspectiveCamera(45, rect.width / rect.height, 0.1, 1000);
+                hologramCamera.position.z = 600;
+                
+                hologramRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+                hologramRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+                meshGroup = new THREE.Group();
+                hologramScene.add(meshGroup);
+
+                const hiddenCanvas = document.createElement('canvas');
+                hiddenCanvas.width = rect.width;
+                hiddenCanvas.height = rect.height;
+                hiddenCtx = hiddenCanvas.getContext('2d', { willReadFrequently: true });
+                
+                fitCanvas();
+                hologramAnimate();
+            }
+            
+            function fitCanvas() {
+                const rect = hologramStage.getBoundingClientRect();
+                if (hologramCamera) {
+                    hologramCamera.aspect = rect.width / rect.height;
+                    hologramCamera.updateProjectionMatrix();
+                }
+                if(hologramRenderer) {
+                    hologramRenderer.setSize(rect.width, rect.height);
+                }
+            }
+
+            function createBodyMesh() {
+                if (!hiddenCtx || !avatar.complete || avatar.naturalHeight === 0) return;
+
+                const rect = hologramStage.getBoundingClientRect();
+                
+                hiddenCtx.clearRect(0, 0, rect.width, rect.height);
+                hiddenCtx.drawImage(avatar, 0, 0, rect.width, rect.height);
+
+                wireframes.forEach(wf => meshGroup.remove(wf));
+                wireframes = [];
+
+                const cellW = rect.width / gridCols;
+                const cellH = rect.height / gridRows;
+
+                const pointsMap = new Map();
+                const validPoints = [];
+
+                for (let r = 0; r < gridRows; r++) {
+                    for (let c = 0; c < gridCols; c++) {
+                        const sampleX = Math.floor(c * cellW + cellW / 2);
+                        const sampleY = Math.floor(r * cellH + cellH / 2);
+                        
+                        const pixelData = hiddenCtx.getImageData(sampleX, sampleY, 1, 1).data;
+                        const alpha = pixelData[3];
+                        const brightness = (pixelData[0] + pixelData[1] + pixelData[2]) / 3;
+
+                        if (alpha > 30) {
+                            const x = (c * cellW) - rect.width / 2 + cellW / 2;
+                            const y = -(r * cellH) + rect.height / 2 - cellH / 2;
+                            const z = (brightness / 255) * 30 - 15;
+                            
+                            const point = { x, y, z, r, c, brightness };
+                            validPoints.push(point);
+                            pointsMap.set(`${r}-${c}`, point);
+                        }
+                    }
+                }
+
+                validPoints.forEach(point => {
+                    const { r, c } = point;
+                    if (pointsMap.has(`${r}-${c + 1}`)) createLine(point, pointsMap.get(`${r}-${c + 1}`), r);
+                    if (pointsMap.has(`${r + 1}-${c}`)) createLine(point, pointsMap.get(`${r + 1}-${c}`), r);
+                    if (pointsMap.has(`${r + 1}-${c + 1}`)) createLine(point, pointsMap.get(`${r + 1}-${c + 1}`), r);
+                    if (pointsMap.has(`${r + 1}-${c - 1}`)) createLine(point, pointsMap.get(`${r + 1}-${c - 1}`), r);
+                });
+
+                function createLine(p1, p2, row) {
+                    const geometry = new THREE.BufferGeometry();
+                    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([p1.x, p1.y, p1.z, p2.x, p2.y, p2.z]), 3));
+                    
+                    const material = new THREE.LineBasicMaterial({ color: 0x00d9ff, transparent: true, opacity: 0, linewidth: 1 });
+                    
+                    const line = new THREE.Line(geometry, material);
+                    line.userData.row = row;
+                    
+                    meshGroup.add(line);
+                    wireframes.push(line);
+                }
+                
+                loading.style.display = 'none';
+            }
+            
+            hologramStage.addEventListener('mousemove', (e) => {
+                const rect = hologramStage.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width * 2 - 1;
+                const y = -((e.clientY - rect.top) / rect.height * 2 - 1);
+                
+                gsap.to(meshGroup.rotation, { duration: 1.5, x: y * 0.2, y: x * 0.3, ease: 'power2.out' });
+            });
+
+            hologramStage.addEventListener('mouseleave', () => {
+                gsap.to(meshGroup.rotation, { duration: 1.5, x: 0, y: 0, ease: 'elastic.out(1, 0.5)' });
+            });
+
+            function hologramAnimate() {
+                requestAnimationFrame(hologramAnimate);
+                if (meshGroup) meshGroup.rotation.z += 0.0005;
+                if(hologramRenderer && hologramScene && hologramCamera) {
+                    hologramRenderer.render(hologramScene, hologramCamera);
+                }
+            }
+            
+            let masterTimeline;
+            function createSequence() {
+                if (wireframes.length === 0) return;
+
+                masterTimeline = gsap.timeline({ paused: true });
+                
+                masterTimeline.fromTo(scanner, { y: -scanner.offsetHeight }, { y: hologramStage.offsetHeight, duration: 3, ease: 'power1.inOut' }, 0);
+
+                wireframes.forEach(wf => {
+                    const revealTime = (wf.userData.row / gridRows) * 2.5;
+                    const randomDelay = Math.random() * 0.05;
+                    masterTimeline.fromTo(wf.material, { opacity: 0 }, { opacity: 0.8, duration: 0.2, ease: 'power2.out' }, revealTime + randomDelay);
+                });
+
+                masterTimeline.to(wireframes.map(wf => wf.material), { opacity: 1, duration: 0.2, ease: 'power2.out', stagger: 0.001 }, 2.8);
+                masterTimeline.to(avatar, { opacity: 1, duration: 1.5, ease: 'power2.out' }, 3);
+                masterTimeline.to(wireframes.map(wf => wf.material), { opacity: 0, duration: 1.2, ease: 'power2.out', stagger: 0.002 }, 3.2);
+            }
+
+            function playSequence() {
+                if (!masterTimeline) return;
+                if (masterTimeline.isActive()) return;
+                
+                gsap.set(avatar, { opacity: 0 });
+                gsap.set(meshGroup.rotation, { x: 0, y: 0, z: 0 });
+                wireframes.forEach(wf => { wf.material.opacity = 0; });
+                masterTimeline.restart();
+            }
+
+            function onImageReady() {
+                createBodyMesh();
+                createSequence();
+                
+                // Use intersection observer to start animation only once
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            setTimeout(playSequence, 500);
+                            observer.disconnect(); // Play only once on enter
+                        }
+                    });
+                }, { threshold: 0.5 });
+                observer.observe(hologramStage);
+            }
+            
+            initThree();
+            
+            if (avatar.complete && avatar.naturalHeight !== 0) {
+                onImageReady();
+            } else {
+                avatar.onload = onImageReady;
+                avatar.onerror = () => {
+                    console.error('Failed to load hologram image');
+                    loading.textContent = 'Failed to load image';
+                };
+            }
+            
+            window.addEventListener('resize', () => {
+                fitCanvas();
+                createBodyMesh();
+                createSequence();
+            });
+            
+            if (replayBtn) {
+                replayBtn.addEventListener('click', playSequence);
+            }
+        }
 
         // --- MODAL LOGIC ---
         function openModal(modalId) {

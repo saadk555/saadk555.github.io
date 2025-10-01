@@ -1,275 +1,868 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
 <head>
-<meta charset="utf-8"/>
-<title>Interactive Cartoon Avatar — Pointer Reactive</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<style>
-  :root { --bg:#0f1724; --line:#dce7f7; --accent:#9fb8ff; --skin:#ffdcb2; --hair:#1f1f2e; --shirt:#111827; }
-  html,body{height:100%;margin:0;background:var(--bg);display:flex;align-items:center;justify-content:center;font-family:Inter,system-ui,Arial;}
-  #stage{width:760px;height:520px;touch-action:none;display:block;position:relative;}
-  svg{width:100%;height:100%;display:block;overflow:visible}
-  /* subtle shadow */
-  #card { filter: drop-shadow(0 8px 24px rgba(0,0,0,0.45)); border-radius:16px; }
-  /* make interactive cursor hint */
-  #wrap{cursor:grab}
-  #wrap:active{cursor:grabbing}
-  /* small UI hint */
-  .hint{position:absolute;left:14px;bottom:10px;color:rgba(255,255,255,0.6);font-size:12px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetworkingWith.Me - Architecting Ventures</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #f0f0f0;
+            overflow-x: hidden;
+        }
+        /* Custom blue color - changed to a more vibrant cyan/blue */
+        :root {
+            --electric-blue: #00BFFF; /* DeepSkyBlue */
+            --dark-charcoal: #111111;
+            --scan-color: #00d9ff;
+        }
+        .text-electric-blue { color: var(--electric-blue); }
+        .bg-electric-blue { background-color: var(--electric-blue); }
+        .border-electric-blue { border-color: var(--electric-blue); }
+        
+        /* For the typing cursor effect */
+        .typing::after {
+            content: '|';
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            from, to { color: transparent; }
+            50% { color: var(--electric-blue); }
+        }
+
+        /* 3D background canvas */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Custom glassmorphism effect for cards */
+        .glass-card {
+            background: rgba(17, 17, 17, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Modal styles */
+        .modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+
+        /* --- Hologram Animation Styles --- */
+        #hologram-container .stage {
+            width: 100%;
+            max-width: 350px;
+            aspect-ratio: 420 / 720;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7), inset 0 0 1px 1px rgba(255,255,255,0.1);
+            background: #1a1d24;
+            perspective: 1500px;
+        }
+
+        #hologram-container .avatar {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #hologram-container #meshCanvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #hologram-container .scanner {
+            position: absolute;
+            left: -10%;
+            width: 120%;
+            height: 80px;
+            background: linear-gradient(180deg, rgba(0, 217, 255, 0) 0%, rgba(0, 217, 255, 0.6) 50%, rgba(0, 217, 255, 0) 100%);
+            transform: translateY(-100%);
+            filter: blur(20px);
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        #hologram-container .scanner::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 3px;
+            transform: translateY(-50%);
+            background: var(--scan-color);
+            box-shadow: 0 0 10px 2px var(--scan-color);
+        }
+
+        #hologram-container .vignette {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.5);
+        }
+
+        #hologram-container .controls {
+            position: absolute;
+            left: 8px; right: 8px; bottom: 8px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            pointer-events: auto;
+        }
+
+        #hologram-container .btn {
+            background: rgba(0, 217, 255, 0.1);
+            color: var(--scan-color);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        #hologram-container .btn:hover {
+            background: rgba(0, 217, 255, 0.25);
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+        #hologram-container .btn:active {
+            transform: scale(0.95);
+        }
+
+        #hologram-container .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--scan-color);
+            font-size: 14px;
+        }
+        
+        /* --- Company Slider Styles --- */
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .company-slider {
+            position: relative;
+            width: 100%;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+        }
+        .slide-track {
+            display: flex;
+            width: calc(250px * 10); /* 250px per image * 10 images (5 original + 5 duplicate) */
+            animation: scroll 40s linear infinite;
+        }
+        .slide {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 250px;
+            padding: 0 20px;
+        }
+        .slide img {
+            max-height: 64px; /* h-16 */
+            width: auto;
+            filter: grayscale(1) brightness(1.5) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .slide img:hover {
+            filter: grayscale(0) brightness(1) drop-shadow(0 6px 12px rgba(0, 217, 255, 0.4));
+            transform: scale(1.1);
+        }
+        .company-slider::before,
+        .company-slider::after {
+            background: linear-gradient(to right, rgba(10,10,10,1) 0%, rgba(10,10,10,0) 100%);
+            content: '';
+            height: 100%;
+            position: absolute;
+            width: 15%;
+            z-index: 2;
+        }
+        .company-slider::before {
+            left: 0;
+            top: 0;
+        }
+        .company-slider::after {
+            right: 0;
+            top: 0;
+            background: linear-gradient(to left, rgba(10,10,10,1) 0%, rgba(10,10,10,0) 100%);
+        }
+
+    </style>
 </head>
-<body>
-  <div id="stage">
-    <div id="wrap">
-      <!-- SVG avatar & background -->
-      <svg id="avatarSVG" viewBox="0 0 760 520" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-        <!-- background gradient -->
-        <defs>
-          <linearGradient id="bgGrad" x1="0" x2="1">
-            <stop offset="0" stop-color="#071028" />
-            <stop offset="1" stop-color="#0f1724" />
-          </linearGradient>
+<body class="bg-[#0a0a0a]">
 
-          <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#000" flood-opacity="0.45"/>
-          </filter>
-        </defs>
+    <!-- 3D Background Canvas -->
+    <div id="canvas-container"></div>
 
-        <!-- background -->
-        <rect x="0" y="0" width="760" height="520" fill="url(#bgGrad)" rx="14" ry="14" id="card"/>
+    <!-- Main Content Wrapper -->
+    <div class="relative z-10">
 
-        <!-- lined cubes group (parallax) -->
-        <g id="cubes" transform="translate(0,0)" opacity="0.9">
-          <!-- repeated wireframe cubes, different positions -->
-          <g transform="translate(90,60)" stroke="#2b3a55" stroke-width="1.2" fill="none" opacity="0.7">
-            <rect x="0" y="0" width="66" height="66" />
-            <path d="M0,0 L22,-18 L88,-18 L66,0 Z" />
-            <path d="M66,0 L66,66 L88,48" />
-            <path d="M22,-18 L22,48" />
-          </g>
-          <g transform="translate(560,90) scale(0.85)" stroke="#243246" stroke-width="1.1" fill="none" opacity="0.6">
-            <rect x="0" y="0" width="56" height="56" />
-            <path d="M0,0 L18,-16 L74,-16 L56,0 Z" />
-            <path d="M56,0 L56,56 L74,40" />
-            <path d="M18,-16 L18,40" />
-          </g>
-          <g transform="translate(380,30) scale(0.9)" stroke="#2b3a55" stroke-width="1" fill="none" opacity="0.5">
-            <rect x="0" y="0" width="48" height="48" />
-            <path d="M0,0 L15,-12 L63,-12 L48,0 Z" />
-            <path d="M48,0 L48,48 L63,36" />
-            <path d="M15,-12 L15,36" />
-          </g>
-          <g transform="translate(220,420) scale(0.7)" stroke="#243246" stroke-width="1" fill="none" opacity="0.45">
-            <rect x="0" y="0" width="48" height="48" />
-            <path d="M0,0 L15,-12 L63,-12 L48,0 Z" />
-            <path d="M48,0 L48,48 L63,36" />
-            <path d="M15,-12 L15,36" />
-          </g>
-        </g>
+        <!-- SECTION 1: HERO -->
+        <section id="hero" class="min-h-screen flex flex-col justify-center items-center text-center p-4">
+            <div class="max-w-4xl mx-auto">
+                <h1 id="name" class="text-4xl md:text-6xl font-bold text-white mb-4 typing">ALEX VANCE</h1>
+                <h2 id="tagline" class="text-5xl md:text-8xl font-black text-white uppercase leading-none mb-6">
+                    <span class="text-electric-blue">Architecting</span> Ventures<br/>
+                    <span class="text-electric-blue">Engineering</span> Growth
+                </h2>
+                <p id="subheading" class="max-w-2xl mx-auto text-lg md:text-xl text-gray-300 mb-10">
+                    Entrepreneurial Software Engineer connecting technical expertise with market opportunities.
+                </p>
+                <a id="cta-button" href="#contact" class="inline-block bg-transparent border-2 border-electric-blue text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-electric-blue hover:text-black transition-all duration-300">
+                    Let's Build Together
+                </a>
+            </div>
+        </section>
 
-        <!-- center group for head + body (we'll transform this as head tilt) -->
-        <g id="character" transform="translate(190,60)">
-          <!-- shirt -->
-          <g id="shirt" transform="translate(60,240)">
-            <path d="M40 10 C10 10 0 60 0 80 L260 80 C260 60 250 10 220 10 L160 20 Z" fill="#0b1220" stroke="#0b1220"/>
-            <!-- collar line -->
-            <path d="M80 20 Q120 40 160 20" stroke="#1f2937" stroke-width="2" fill="none" opacity="0.6"/>
-          </g>
+        <!-- SECTION 2: CORE PHILOSOPHY -->
+        <section id="philosophy" class="py-20 md:py-32 px-4">
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="gsap-fade-up glass-card p-8 rounded-xl text-center transition-all duration-300 hover:border-electric-blue hover:-translate-y-2">
+                    <div class="flex justify-center mb-4">
+                        <svg class="w-12 h-12 text-electric-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Technical Acumen</h3>
+                    <p class="text-gray-300">I build scalable, secure, and elegant software solutions.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="gsap-fade-up glass-card p-8 rounded-xl text-center transition-all duration-300 hover:border-electric-blue hover:-translate-y-2">
+                    <div class="flex justify-center mb-4">
+                       <svg class="w-12 h-12 text-electric-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Business Strategy</h3>
+                    <p class="text-gray-300">I translate complex market needs into actionable roadmaps.</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="gsap-fade-up glass-card p-8 rounded-xl text-center transition-all duration-300 hover:border-electric-blue hover:-translate-y-2">
+                    <div class="flex justify-center mb-4">
+                        <svg class="w-12 h-12 text-electric-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Venture Creation</h3>
+                    <p class="text-gray-300">I thrive on building new ventures from zero to one.</p>
+                </div>
+            </div>
+        </section>
 
-          <!-- neck -->
-          <ellipse id="neck" cx="170" cy="200" rx="32" ry="40" fill="#f7d9b2" />
+        <!-- SECTION 3: PORTFOLIO -->
+        <section id="portfolio" class="py-20 md:py-32 px-4">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="gsap-fade-up text-4xl md:text-5xl font-bold text-center mb-12">Case Studies: From Concept to Capital</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Project 1 -->
+                    <div class="gsap-fade-up glass-card rounded-xl overflow-hidden cursor-pointer group" onclick="openModal('modal1')">
+                        <div class="p-8">
+                            <h3 class="text-2xl font-bold text-white mb-1">Fin-Alytics AI</h3>
+                            <p class="text-electric-blue font-semibold mb-4">FinTech // AI-Powered Analytics</p>
+                            <p class="text-gray-300 mb-6">An AI-driven platform to provide real-time portfolio analysis and risk assessment for boutique investment firms.</p>
+                            <span class="font-semibold text-white group-hover:text-electric-blue transition-colors duration-300">View Case Study &rarr;</span>
+                        </div>
+                    </div>
+                    <!-- Project 2 -->
+                    <div class="gsap-fade-up glass-card rounded-xl overflow-hidden cursor-pointer group" onclick="openModal('modal2')">
+                        <div class="p-8">
+                            <h3 class="text-2xl font-bold text-white mb-1">ConnectSphere</h3>
+                            <p class="text-electric-blue font-semibold mb-4">DevOps // Scalable Cloud Solutions</p>
+                            <p class="text-gray-300 mb-6">Architected a multi-cloud CI/CD pipeline for a SaaS startup, reducing deployment times by 80% and improving system uptime.</p>
+                            <span class="font-semibold text-white group-hover:text-electric-blue transition-colors duration-300">View Case Study &rarr;</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-          <!-- head group (we will rotate/translate slightly to simulate tilt) -->
-          <g id="head" transform="translate(70,30)">
-            <!-- hair (stylized) -->
-            <path id="hair" d="M48 36 C28 10 10 6 0 28 C-2 40 12 16 36 30 C70 50 110 36 120 22 C110 40 90 72 48 36 Z" fill="#11121a" />
-            <!-- face -->
-            <ellipse id="face" cx="140" cy="120" rx="92" ry="112" fill="#ffdcb2" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>
-            <!-- left eyebrow -->
-            <path d="M86 100 Q110 92 132 96" stroke="#5b4b3b" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.6"/>
-            <!-- right eyebrow -->
-            <path d="M180 100 Q210 90 232 94" stroke="#5b4b3b" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.6"/>
-            <!-- eyes group -->
-            <g id="eyes" transform="translate(0,0)">
-              <!-- left eye white -->
-              <ellipse id="eyeL" cx="122" cy="134" rx="16" ry="12" fill="#fff" stroke="#d6d6d6"/>
-              <!-- left pupil -->
-              <circle id="pupilL" cx="122" cy="136" r="6" fill="#1a1a1a"/>
-              <!-- right eye white -->
-              <ellipse id="eyeR" cx="206" cy="134" rx="16" ry="12" fill="#fff" stroke="#d6d6d6"/>
-              <!-- right pupil -->
-              <circle id="pupilR" cx="206" cy="136" r="6" fill="#1a1a1a"/>
-            </g>
+        <!-- SECTION: COMPANY SLIDER -->
+        <section id="companies" class="py-20 md:py-32">
+            <div class="max-w-6xl mx-auto text-center px-4">
+                <h2 class="gsap-fade-up text-4xl md:text-5xl font-bold mb-12">My Companies & Companies I've Worked With</h2>
+            </div>
+            <div class="company-slider">
+                <div class="slide-track">
+                    <!-- Logos -->
+                    <div class="slide"><img src="https://i.ibb.co/WvtP7qpm/pekisa-linkedin.png" alt="Pekisa logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/KxCfm79z/bluxech-full-2.png" alt="Bluxech logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/WN7wDFCJ/Hatch-Pak-1.png" alt="Hatch-Pak logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/bM5TvvGj/default-04d56222.webp" alt="Toptal logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/99YdZ3Vh/Fiverr-Logo.png" alt="Fiverr logo"></div>
+                    <!-- Duplicated Logos for seamless loop -->
+                    <div class="slide"><img src="https://i.ibb.co/WvtP7qpm/pekisa-linkedin.png" alt="Pekisa logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/KxCfm79z/bluxech-full-2.png" alt="Bluxech logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/WN7wDFCJ/Hatch-Pak-1.png" alt="Hatch-Pak logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/bM5TvvGj/default-04d56222.webp" alt="Toptal logo"></div>
+                    <div class="slide"><img src="https://i.ibb.co/99YdZ3Vh/Fiverr-Logo.png" alt="Fiverr logo"></div>
+                </div>
+            </div>
+        </section>
 
-            <!-- nose -->
-            <path d="M168 152 Q170 170 158 176" stroke="#c08d6b" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- SECTION: SKILLS GLOBE -->
+        <section id="skills" class="py-20 md:py-32 px-4">
+            <div id="skills-globe-container" class="max-w-6xl mx-auto text-center">
+                <h2 class="gsap-fade-up text-4xl md:text-5xl font-bold mb-4">My DevOps Skills and Tools</h2>
+                 <p class="gsap-fade-up text-lg text-gray-400 mb-12">An interactive globe of the technologies I work with.</p>
+                <div class="w-full flex justify-center items-center">
+                    <canvas width="800" height="800" id="skills-canvas">
+                        <p>Anything in here will be replaced on browsers that support the canvas element</p>
+                    </canvas>
+                </div>
+                <div id="skills-list" style="display:none;">
+                    <ul>
+                        <!-- DevOps Skills -->
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=python&theme=dark" width="60" height="60" alt="Python"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=html&theme=dark" width="60" height="60" alt="HTML"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=css&theme=dark" width="60" height="60" alt="CSS"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=aws&theme=dark" width="60" height="60" alt="AWS"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=azure&theme=dark" width="60" height="60" alt="Azure"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=docker&theme=dark" width="60" height="60" alt="Docker"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=kubernetes&theme=dark" width="60" height="60" alt="Kubernetes"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=bash&theme=dark" width="60" height="60" alt="Bash"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=powershell&theme=dark" width="60" height="60" alt="PowerShell"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=selenium&theme=dark" width="60" height="60" alt="Selenium"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=git&theme=dark" width="60" height="60" alt="Git"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=openshift&theme=dark" width="60" height="60" alt="OpenShift"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=ansible&theme=dark" width="60" height="60" alt="Ansible"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=github&theme=dark" width="60" height="60" alt="GitHub"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=jenkins&theme=dark" width="60" height="60" alt="Jenkins"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=githubactions&theme=dark" width="60" height="60" alt="GitHub Actions"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=flask&theme=dark" width="60" height="60" alt="Flask"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=nodejs&theme=dark" width="60" height="60" alt="Node.js"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=linux&theme=dark" width="60" height="60" alt="Linux"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=mysql&theme=dark" width="60" height="60" alt="MySQL"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=c&theme=dark" width="60" height="60" alt="C"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=grafana&theme=dark" width="60" height="60" alt="Grafana"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=heroku&theme=dark" width="60" height="60" alt="Heroku"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=regex&theme=dark" width="60" height="60" alt="Regex"></a></li>
+                        <!-- Extra Skills -->
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=ps&theme=dark" width="60" height="60" alt="Photoshop"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=ai&theme=dark" width="60" height="60" alt="Illustrator"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=pr&theme=dark" width="60" height="60" alt="Premiere Pro"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=blender&theme=dark" width="60" height="60" alt="Blender"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=sketchup&theme=dark" width="60" height="60" alt="SketchUp"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=matlab&theme=dark" width="60" height="60" alt="MATLAB"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=latex&theme=dark" width="60" height="60" alt="LaTeX"></a></li>
+                        <li><a href="#"><img src="https://skillicons.dev/icons?i=wordpress&theme=dark" width="60" height="60" alt="WordPress"></a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
 
-            <!-- mouth -->
-            <path id="mouth" d="M138 194 Q170 204 198 194" stroke="#b05f56" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+        <!-- SECTION 4: BIO -->
+        <section id="bio" class="py-20 md:py-32 px-4 bg-[#111111]">
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-12 items-center">
+                <!-- Hologram Animation Container -->
+                <div id="hologram-container" class="md:col-span-2 flex justify-center items-center h-full min-h-[400px] md:min-h-0">
+                    <div class="stage" id="hologram-stage">
+                        <img class="avatar" id="avatarImg" src="https://i.ibb.co/5gtyjvCW/Untitled-design-2.png" alt="avatar" crossorigin="anonymous">
+                        <canvas id="meshCanvas"></canvas>
+                        <div class="scanner" id="scanner"></div>
+                        <div class="vignette"></div>
+                        <div class="controls">
+                        </div>
+                        <div class="loading" id="loading">Initializing...</div>
+                    </div>
+                </div>
+                <div class="md:col-span-3 gsap-fade-up">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">The Vision</h2>
+                    <p class="text-lg text-gray-300 leading-relaxed mb-4">
+                        Entrepreneurial Software Engineer with 3+ years of experience in Python development, DevOps, and driving business growth and sales. Skilled in creating scalable, secure solutions and fostering innovation by connecting technical expertise with market opportunities. Proven success in remote client engagement and startup ventures.
+                    </p>
+                    <p class="text-lg text-gray-300 leading-relaxed">
+                        My goal is to build and scale companies that define the future. I am currently seeking ambitious investors and partners to join me on this journey.
+                    </p>
+                </div>
+            </div>
+        </section>
 
-            <!-- cheek sparkle (cute touch) -->
-            <circle cx="100" cy="170" r="6" fill="#ffd0b3" opacity="0.9"/>
-            <!-- subtle line-art outline -->
-            <path d="M60 120 Q90 30 156 18 Q220 10 260 60 Q280 110 210 200 Q150 260 80 230 Q64 200 60 120 Z" fill="none" stroke="rgba(0,0,0,0.06)"/>
-          </g>
+        <!-- SECTION 5: CONTACT -->
+        <section id="contact" class="py-20 md:py-32 px-4">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="gsap-fade-up text-4xl md:text-6xl font-black text-white mb-4">Have an idea?<br>Need a technical partner?</h2>
+                <h3 class="gsap-fade-up text-3xl md:text-5xl font-bold text-electric-blue mb-12">Let's connect.</h3>
+                <div class="gsap-fade-up flex justify-center items-center space-x-6">
+                    <!-- Email -->
+                    <a href="mailto:hello@networkingwith.me" class="text-gray-400 hover:text-white transition-colors duration-300">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"></path></svg>
+                    </a>
+                    <!-- LinkedIn -->
+                    <a href="#" target="_blank" class="text-gray-400 hover:text-white transition-colors duration-300">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"></path></svg>
+                    </a>
+                    <!-- GitHub -->
+                     <a href="#" target="_blank" class="text-gray-400 hover:text-white transition-colors duration-300">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </section>
 
-          <!-- small hand for wave (hidden initially, will animate on tap) -->
-          <g id="hand" transform="translate(250,220) rotate(8)">
-            <path id="arm" d="M0 0 Q26 -6 54 6" stroke="#f7d9b2" stroke-width="16" stroke-linecap="round" fill="none" opacity="1"/>
-            <circle cx="54" cy="6" r="12" fill="#f7d9b2"/>
-          </g>
-
-        </g>
-
-      </svg>
     </div>
 
-    <div class="hint">Move mouse / touch to interact • Click/tap to wave</div>
-  </div>
+    <!-- MODALS -->
+    <!-- Modal 1 -->
+    <div id="modal1" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-80" onclick="closeModal('modal1')"></div>
+        <div class="modal-content glass-card rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto z-10 scale-95 opacity-0">
+            <div class="p-8 md:p-12">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-3xl font-bold text-white mb-1">Fin-Alytics AI</h3>
+                        <p class="text-electric-blue font-semibold mb-4">FinTech // AI-Powered Analytics</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-white text-3xl leading-none" onclick="closeModal('modal1')">&times;</button>
+                </div>
+                <div class="prose prose-invert prose-lg mt-6 text-gray-300">
+                    <p><strong>The Challenge:</strong> Building a real-time data processing engine for investment portfolio analysis that could handle millions of data points with minimal latency.</p>
+                    <p><strong>My Role:</strong> As Lead Software Engineer & Technical Co-founder, I architected the core Python backend, implemented a scalable DevOps pipeline on AWS, and was instrumental in early-stage client acquisition and technical sales demos.</p>
+                    <p><strong>Tech Stack:</strong> Python, Django, Docker, Kubernetes, AWS (EC2, S3, RDS), PostgreSQL, Redis.</p>
+                    <p><strong>The Outcome:</strong> Successfully processed 10M+ data points daily, leading to a 30% increase in analytical efficiency for our pilot clients and securing our pre-seed funding round of $500k.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal 2 -->
+    <div id="modal2" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-80" onclick="closeModal('modal2')"></div>
+        <div class="modal-content glass-card rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto z-10 scale-95 opacity-0">
+            <div class="p-8 md:p-12">
+                <div class="flex justify-between items-start">
+                     <div>
+                        <h3 class="text-3xl font-bold text-white mb-1">ConnectSphere</h3>
+                        <p class="text-electric-blue font-semibold mb-4">DevOps // Scalable Cloud Solutions</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-white text-3xl leading-none" onclick="closeModal('modal2')">&times;</button>
+                </div>
+                 <div class="prose prose-invert prose-lg mt-6 text-gray-300">
+                    <p><strong>The Challenge:</strong> A rapidly growing B2B SaaS company faced inconsistent deployments and frequent downtime, hindering their ability to scale and retain enterprise clients.</p>
+                    <p><strong>My Role:</strong> I was brought on as a DevOps consultant to design and implement a robust CI/CD and infrastructure-as-code strategy. My work involved creating automated pipelines and deploying monitoring solutions.</p>
+                    <p><strong>Tech Stack:</strong> Terraform, Ansible, Jenkins, Docker, Kubernetes, Google Cloud Platform (GKE, Cloud Build), Prometheus, Grafana.</p>
+                    <p><strong>The Outcome:</strong> Reduced manual deployment time from 4 hours to 15 minutes. Increased system uptime from 99.5% to 99.99%. This stability was a key factor in the company securing a $2M Series A funding round.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<script>
-/*
- Interactive behavior:
- - eyes follow cursor (pupils move inside eye area)
- - head group translates & rotates slightly (tilt) based on pointer
- - background cubes parallax
- - click/tap triggers short wave (hand rotate)
- Smooth transitions use simple lerp for inertia
-*/
-(function(){
-  const svg = document.getElementById('avatarSVG');
-  const wrap = document.getElementById('wrap');
-  const eyes = { pL: svg.querySelector('#pupilL'), pR: svg.querySelector('#pupilR'), eyeL: svg.querySelector('#eyeL'), eyeR: svg.querySelector('#eyeR') };
-  const headGroup = svg.querySelector('#head');
-  const char = svg.querySelector('#character');
-  const cubes = svg.querySelector('#cubes');
-  const hand = svg.querySelector('#hand');
 
-  // state
-  let target = { x: 0, y: 0 };
-  let current = { x: 0, y: 0 };
-  let headTarget = { tx: 0, ty: 0, rot: 0 };
-  let headCurrent = { tx: 0, ty: 0, rot: 0 };
-  let cubeTarget = { x:0, y:0 };
-  let cubeCurrent = { x:0, y:0 };
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <script src="https://www.goat1000.com/tagcanvas.min.js" type="text/javascript"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.registerPlugin(ScrollTrigger);
 
-  // mouse/touch handlers
-  function handlePointer(clientX, clientY) {
-    const rect = svg.getBoundingClientRect();
-    const cx = rect.left + rect.width/2;
-    const cy = rect.top + rect.height/2;
-    const dx = (clientX - cx) / (rect.width/2); // -1..1
-    const dy = (clientY - cy) / (rect.height/2); // -1..1
+            // --- HERO ANIMATION ---
+            const nameEl = document.getElementById('name');
+            const originalName = 'ALEX VANCE';
+            nameEl.textContent = '';
+            
+            gsap.set(['#tagline', '#subheading', '#cta-button'], { opacity: 0, y: 20 });
 
-    target.x = dx; target.y = dy;
+            let i = 0;
+            function typeName() {
+                if (i < originalName.length) {
+                    nameEl.textContent += originalName.charAt(i);
+                    i++;
+                    setTimeout(typeName, 150);
+                } else {
+                    nameEl.classList.remove('typing');
+                    const tl = gsap.timeline({ defaults: { ease: 'power3.out' }});
+                    tl.to('#tagline', { opacity: 1, y: 0, duration: 1 })
+                      .to('#subheading', { opacity: 1, y: 0, duration: 1 }, "-=0.7")
+                      .to('#cta-button', { opacity: 1, y: 0, duration: 1 }, "-=0.7");
+                }
+            }
+            setTimeout(typeName, 500);
 
-    // head movement (smaller)
-    headTarget.tx = dx * 10; // px
-    headTarget.ty = dy * 8;
-    headTarget.rot = dx * -6; // degrees rotation
+            // --- GSAP SCROLL-TRIGGERED ANIMATIONS ---
+            const fadeUpElements = document.querySelectorAll('.gsap-fade-up');
+            fadeUpElements.forEach((el, index) => {
+                gsap.from(el, {
+                    scrollTrigger: {
+                        trigger: el,
+                        start: 'top 85%',
+                        toggleActions: 'play none none none',
+                    },
+                    opacity: 0,
+                    y: 50,
+                    duration: 1,
+                    ease: 'power3.out',
+                    delay: (index % 3) * 0.2
+                });
+            });
+            
+            // --- SKILLS GLOBE ---
+            try {
+                TagCanvas.Start('skills-canvas', 'skills-list', {
+                    textColour: '#00BFFF',
+                    outlineColour: '#00000000',
+                    reverse: true,
+                    depth: 0.8,
+                    maxSpeed: 0.05,
+                    imageScale: 1.0,
+                    initial: [0.05, -0.05],
+                    wheelZoom: false,
+                });
+            } catch(e) {
+                console.error("TagCanvas failed to start:", e);
+                document.getElementById('skills-globe-container').style.display = 'none';
+            }
 
-    // cubes parallax (inverse, larger)
-    cubeTarget.x = dx * -16;
-    cubeTarget.y = dy * -10;
-  }
 
-  // click/tap wave
-  let waving = false;
-  function doWave() {
-    if (waving) return;
-    waving = true;
-    // animate small rotation sequence using requestAnimationFrame loop
-    const seq = [
-      { dur: 80, rot: -32 },
-      { dur: 120, rot: 20 },
-      { dur: 120, rot: -18 },
-      { dur: 120, rot: 14 },
-      { dur: 140, rot: 0 }
-    ];
-    let i=0;
-    function nextStep(){
-      if (i>=seq.length){ waving=false; return; }
-      const step = seq[i++];
-      const start = performance.now();
-      const startRot = parseFloat(hand.getAttribute('data-rot') || hand.getAttribute('transform')?.match(/rotate\((-?\d+)/)?.[1] || 8);
-      const endRot = step.rot;
-      function frame(t){
-        const p = Math.min(1,(t-start)/step.dur);
-        const cur = startRot + (endRot - startRot) * (0.5 - 0.5*Math.cos(Math.PI*p)); // smooth ease
-        hand.setAttribute('transform', `translate(250,220) rotate(${cur})`);
-        hand.setAttribute('data-rot', cur);
-        if (p<1) requestAnimationFrame(frame);
-        else nextStep();
-      }
-      requestAnimationFrame(frame);
-    }
-    nextStep();
-  }
+            // --- HOLOGRAPHIC REVEAL ANIMATION ---
+            try {
+                initHologramAnimation();
+            } catch(e) {
+                console.error("Hologram animation failed to start:", e);
+                document.getElementById('hologram-container').style.display = 'none';
+            }
 
-  // pointer events
-  window.addEventListener('mousemove', (e) => {
-    handlePointer(e.clientX, e.clientY);
-  });
-  window.addEventListener('touchmove', (e) => {
-    if (e.touches && e.touches[0]) handlePointer(e.touches[0].clientX, e.touches[0].clientY);
-  }, {passive:true});
 
-  // click/tap
-  svg.addEventListener('click', (e)=> {
-    doWave();
-  });
+            // --- THREE.JS SCI-FI BACKGROUND ---
+            try {
+                let scene, camera, renderer, cubesGroup;
+                let mouse = new THREE.Vector2();
 
-  // small helper to clamp
-  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-  // lerp
-  function lerp(a,b,t){ return a + (b-a)*t; }
+                function initThreeJS() {
+                    const container = document.getElementById('canvas-container');
+                    scene = new THREE.Scene();
+                    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                    camera.position.z = 50;
 
-  // animation loop
-  function raf(){
-    // smooth current target interpolation
-    current.x = lerp(current.x, target.x, 0.12);
-    current.y = lerp(current.y, target.y, 0.12);
+                    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                    container.appendChild(renderer.domElement);
+                    
+                    cubesGroup = new THREE.Group();
 
-    headCurrent.tx = lerp(headCurrent.tx, headTarget.tx, 0.12);
-    headCurrent.ty = lerp(headCurrent.ty, headTarget.ty, 0.12);
-    headCurrent.rot = lerp(headCurrent.rot, headTarget.rot, 0.12);
+                    const cubeGeometry = new THREE.BoxGeometry(3, 3, 3);
+                    const cubeMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 });
 
-    cubeCurrent.x = lerp(cubeCurrent.x, cubeTarget.x, 0.08);
-    cubeCurrent.y = lerp(cubeCurrent.y, cubeTarget.y, 0.08);
+                    for (let i = 0; i < 40; i++) {
+                        const edges = new THREE.EdgesGeometry(cubeGeometry);
+                        const line = new THREE.LineSegments(edges, cubeMaterial);
+                        
+                        line.position.x = (Math.random() - 0.5) * 150;
+                        line.position.y = (Math.random() - 0.5) * 150;
+                        line.position.z = (Math.random() - 0.5) * 150;
 
-    // apply head transform (slight translation + rotation origin centered)
-    headGroup.setAttribute('transform', `translate(70,30) translate(${headCurrent.tx},${headCurrent.ty}) rotate(${headCurrent.rot}, 140, 120)`);
+                        line.rotation.x = Math.random() * Math.PI;
+                        line.rotation.y = Math.random() * Math.PI;
 
-    // eyes: map current.x/current.y to pupils movement inside eye bounds
-    // left eye center (122,136), right eye center (206,136); allow +-4px pupils movement horizontally, +-3px vertically
-    const pxRange = 5;
-    const pyRange = 3;
-    const pLx = 122 + clamp(current.x * pxRange, -pxRange, pxRange);
-    const pLy = 136 + clamp(current.y * pyRange, -pyRange, pyRange);
-    const pRx = 206 + clamp(current.x * pxRange, -pxRange, pxRange);
-    const pRy = 136 + clamp(current.y * pyRange, -pyRange, pyRange);
+                        cubesGroup.add(line);
+                    }
+                    scene.add(cubesGroup);
 
-    eyes.pL.setAttribute('cx', pLx);
-    eyes.pL.setAttribute('cy', pLy);
-    eyes.pR.setAttribute('cx', pRx);
-    eyes.pR.setAttribute('cy', pRy);
+                    window.addEventListener('resize', onWindowResize);
+                    document.addEventListener('mousemove', onMouseMove);
+                }
 
-    // subtle mouth / smile when pointer near center Y
-    const mouth = svg.querySelector('#mouth');
-    const smileScale = clamp(1 - Math.abs(current.x)*0.7 - Math.abs(current.y)*0.2, 0.7, 1.08);
-    mouth.setAttribute('transform', `translate(0,${(1-smileScale)*6}) scale(${smileScale})`);
+                function onWindowResize() {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                }
 
-    // cubes parallax
-    cubes.setAttribute('transform', `translate(${cubeCurrent.x},${cubeCurrent.y})`);
+                function onMouseMove(event) {
+                    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                }
 
-    requestAnimationFrame(raf);
-  }
-  raf();
+                function animate() {
+                    requestAnimationFrame(animate);
 
-  // small responsive: center avatar on resize (optional)
-  window.addEventListener('resize', ()=>{ /* no-op for now */ });
+                    cubesGroup.children.forEach(cube => {
+                        cube.rotation.x += 0.001;
+                        cube.rotation.y += 0.001;
+                    });
 
-})();
-</script>
+                    const targetX = mouse.x * 5;
+                    const targetY = mouse.y * 5;
+                    cubesGroup.rotation.y += 0.05 * (targetX - cubesGroup.rotation.y);
+                    cubesGroup.rotation.x += 0.05 * (targetY - cubesGroup.rotation.x);
+
+                    renderer.render(scene, camera);
+                }
+
+                initThreeJS();
+                animate();
+            } catch (error) {
+                console.error("3D background initialization failed:", error);
+                const canvasContainer = document.getElementById('canvas-container');
+                if (canvasContainer) {
+                    canvasContainer.remove();
+                }
+            }
+        });
+        
+        // --- HOLOGRAPHIC REVEAL ANIMATION LOGIC ---
+        function initHologramAnimation() {
+            const hologramStage = document.getElementById('hologram-stage');
+            const avatar = document.getElementById('avatarImg');
+            const canvas = document.getElementById('meshCanvas');
+            const scanner = document.getElementById('scanner');
+            const loading = document.getElementById('loading');
+
+            let hologramScene, hologramCamera, hologramRenderer;
+            let meshGroup, wireframes = [];
+            let hiddenCtx;
+            let gridCols = 30, gridRows = 50;
+            
+            function initThree() {
+                hologramScene = new THREE.Scene();
+                const rect = hologramStage.getBoundingClientRect();
+                
+                hologramCamera = new THREE.PerspectiveCamera(45, rect.width / rect.height, 0.1, 1000);
+                hologramCamera.position.z = 600;
+                
+                hologramRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+                hologramRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+                meshGroup = new THREE.Group();
+                hologramScene.add(meshGroup);
+
+                const hiddenCanvas = document.createElement('canvas');
+                hiddenCanvas.width = rect.width;
+                hiddenCanvas.height = rect.height;
+                hiddenCtx = hiddenCanvas.getContext('2d', { willReadFrequently: true });
+                
+                fitCanvas();
+                hologramAnimate();
+            }
+            
+            function fitCanvas() {
+                const rect = hologramStage.getBoundingClientRect();
+                if (hologramCamera) {
+                    hologramCamera.aspect = rect.width / rect.height;
+                    hologramCamera.updateProjectionMatrix();
+                }
+                if(hologramRenderer) {
+                    hologramRenderer.setSize(rect.width, rect.height);
+                }
+            }
+
+            function createBodyMesh() {
+                if (!hiddenCtx || !avatar.complete || avatar.naturalHeight === 0) return;
+
+                const rect = hologramStage.getBoundingClientRect();
+                
+                hiddenCtx.clearRect(0, 0, rect.width, rect.height);
+                hiddenCtx.drawImage(avatar, 0, 0, rect.width, rect.height);
+
+                wireframes.forEach(wf => meshGroup.remove(wf));
+                wireframes = [];
+
+                const cellW = rect.width / gridCols;
+                const cellH = rect.height / gridRows;
+
+                const pointsMap = new Map();
+                const validPoints = [];
+
+                for (let r = 0; r < gridRows; r++) {
+                    for (let c = 0; c < gridCols; c++) {
+                        const sampleX = Math.floor(c * cellW + cellW / 2);
+                        const sampleY = Math.floor(r * cellH + cellH / 2);
+                        
+                        const pixelData = hiddenCtx.getImageData(sampleX, sampleY, 1, 1).data;
+                        const alpha = pixelData[3];
+                        const brightness = (pixelData[0] + pixelData[1] + pixelData[2]) / 3;
+
+                        if (alpha > 30) {
+                            const x = (c * cellW) - rect.width / 2 + cellW / 2;
+                            const y = -(r * cellH) + rect.height / 2 - cellH / 2;
+                            const z = (brightness / 255) * 30 - 15;
+                            
+                            const point = { x, y, z, r, c, brightness };
+                            validPoints.push(point);
+                            pointsMap.set(`${r}-${c}`, point);
+                        }
+                    }
+                }
+
+                validPoints.forEach(point => {
+                    const { r, c } = point;
+                    if (pointsMap.has(`${r}-${c + 1}`)) createLine(point, pointsMap.get(`${r}-${c + 1}`), r);
+                    if (pointsMap.has(`${r + 1}-${c}`)) createLine(point, pointsMap.get(`${r + 1}-${c}`), r);
+                    if (pointsMap.has(`${r + 1}-${c + 1}`)) createLine(point, pointsMap.get(`${r + 1}-${c + 1}`), r);
+                    if (pointsMap.has(`${r + 1}-${c - 1}`)) createLine(point, pointsMap.get(`${r + 1}-${c - 1}`), r);
+                });
+
+                function createLine(p1, p2, row) {
+                    const geometry = new THREE.BufferGeometry();
+                    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([p1.x, p1.y, p1.z, p2.x, p2.y, p2.z]), 3));
+                    
+                    const material = new THREE.LineBasicMaterial({ color: 0x00d9ff, transparent: true, opacity: 0, linewidth: 1 });
+                    
+                    const line = new THREE.Line(geometry, material);
+                    line.userData.row = row;
+                    
+                    meshGroup.add(line);
+                    wireframes.push(line);
+                }
+                
+                loading.style.display = 'none';
+            }
+            
+            hologramStage.addEventListener('mousemove', (e) => {
+                const rect = hologramStage.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width * 2 - 1;
+                const y = -((e.clientY - rect.top) / rect.height * 2 - 1);
+                
+                gsap.to(meshGroup.rotation, { duration: 1.5, x: y * 0.2, y: x * 0.3, ease: 'power2.out' });
+            });
+
+            hologramStage.addEventListener('mouseleave', () => {
+                gsap.to(meshGroup.rotation, { duration: 1.5, x: 0, y: 0, ease: 'elastic.out(1, 0.5)' });
+            });
+
+            function hologramAnimate() {
+                requestAnimationFrame(hologramAnimate);
+                if (meshGroup) meshGroup.rotation.z += 0.0005;
+                if(hologramRenderer && hologramScene && hologramCamera) {
+                    hologramRenderer.render(hologramScene, hologramCamera);
+                }
+            }
+            
+            let masterTimeline;
+            function createSequence() {
+                if (wireframes.length === 0) return;
+
+                masterTimeline = gsap.timeline({ paused: true });
+                
+                masterTimeline.fromTo(scanner, { y: -scanner.offsetHeight }, { y: hologramStage.offsetHeight, duration: 3, ease: 'power1.inOut' }, 0);
+
+                wireframes.forEach(wf => {
+                    const revealTime = (wf.userData.row / gridRows) * 2.5;
+                    const randomDelay = Math.random() * 0.05;
+                    masterTimeline.fromTo(wf.material, { opacity: 0 }, { opacity: 0.8, duration: 0.2, ease: 'power2.out' }, revealTime + randomDelay);
+                });
+
+                masterTimeline.to(wireframes.map(wf => wf.material), { opacity: 1, duration: 0.2, ease: 'power2.out', stagger: 0.001 }, 2.8);
+                masterTimeline.to(avatar, { opacity: 1, duration: 1.5, ease: 'power2.out' }, 3);
+                masterTimeline.to(wireframes.map(wf => wf.material), { opacity: 0, duration: 1.2, ease: 'power2.out', stagger: 0.002 }, 3.2);
+            }
+
+            function playSequence() {
+                if (!masterTimeline) return;
+                if (masterTimeline.isActive()) return;
+                
+                gsap.set(avatar, { opacity: 0 });
+                gsap.set(meshGroup.rotation, { x: 0, y: 0, z: 0 });
+                wireframes.forEach(wf => { wf.material.opacity = 0; });
+                masterTimeline.restart();
+            }
+
+            function onImageReady() {
+                createBodyMesh();
+                createSequence();
+                
+                // Use intersection observer to start animation only once
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            setTimeout(playSequence, 500);
+                            observer.disconnect(); // Play only once on enter
+                        }
+                    });
+                }, { threshold: 0.5 });
+                observer.observe(hologramStage);
+            }
+            
+            initThree();
+            
+            if (avatar.complete && avatar.naturalHeight !== 0) {
+                onImageReady();
+            } else {
+                avatar.onload = onImageReady;
+                avatar.onerror = () => {
+                    console.error('Failed to load hologram image');
+                    loading.textContent = 'Failed to load image';
+                };
+            }
+            
+            window.addEventListener('resize', () => {
+                fitCanvas();
+                createBodyMesh();
+                createSequence();
+            });
+            
+            replayBtn.addEventListener('click', playSequence);
+        }
+
+        // --- MODAL LOGIC ---
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            
+            const backdrop = modal.querySelector('.modal-backdrop');
+            const content = modal.querySelector('.modal-content');
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            setTimeout(() => {
+                if (backdrop) backdrop.style.opacity = '1';
+                if (content) {
+                    content.style.opacity = '1';
+                    content.style.transform = 'scale(1)';
+                }
+            }, 10);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            
+            const backdrop = modal.querySelector('.modal-backdrop');
+            const content = modal.querySelector('.modal-content');
+            
+            if (backdrop) backdrop.style.opacity = '0';
+            if (content) {
+                 content.style.opacity = '0';
+                 content.style.transform = 'scale(0.95)';
+            }
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                 document.body.style.overflow = 'auto';
+            }, 300);
+        }
+    </script>
 </body>
 </html>
+
