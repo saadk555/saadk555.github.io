@@ -5,11 +5,19 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          gsap: ['gsap'],
-          'gsap-scroll-trigger': ['gsap/ScrollTrigger'],
-          three: ['three'],
-          lottie: ['lottie-web']
+        manualChunks: (id) => {
+          if (id.includes('gsap/ScrollTrigger')) {
+            return 'gsap-scroll-trigger';
+          }
+          if (id.includes('gsap')) {
+            return 'gsap';
+          }
+          if (id.includes('three')) {
+            return 'three';
+          }
+          if (id.includes('lottie-web')) {
+            return 'lottie';
+          }
         }
       }
     }
