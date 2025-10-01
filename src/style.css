@@ -217,3 +217,88 @@ body {
     top: 0;
     background: linear-gradient(to left, rgba(10,10,10,1) 0%, rgba(10,10,10,0) 100%);
 }
+
+/* Prevent horizontal overflow */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+}
+
+/* Fix company slider overflow */
+.company-slider {
+    max-width: 100vw;
+    overflow: hidden;
+}
+
+.slide-track {
+    width: calc(250px * 10);
+    animation: scroll 40s linear infinite;
+}
+
+/* Ensure all sections stay within viewport */
+section {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+/* Fix hologram container on mobile */
+@media (max-width: 768px) {
+    #hologram-container .stage {
+        max-width: 90vw;
+        margin: 0 auto;
+    }
+    
+    /* Ensure contact section is visible */
+    #contact {
+        position: relative;
+        z-index: 10;
+        min-height: 50vh;
+    }
+    
+    /* Fix any canvas overflow */
+    #canvas-container {
+        max-width: 100vw;
+        overflow: hidden;
+    }
+    
+    /* Ensure modals work on mobile */
+    .modal-content {
+        width: calc(100vw - 2rem);
+        margin: 1rem;
+    }
+}
+
+/* Fix for very small screens like Pixel 6a (412px width) */
+@media (max-width: 414px) {
+    .slide {
+        width: 200px;
+        padding: 0 15px;
+    }
+    
+    .slide-track {
+        width: calc(200px * 10);
+    }
+    
+    /* Make text more readable */
+    #hero h2 {
+        font-size: 2.5rem;
+        line-height: 1.2;
+    }
+    
+    #hero h1 {
+        font-size: 1.25rem;
+    }
+}
+
+/* Remove fade animations from contact icons */
+#contact .gsap-fade-up {
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+#contact a,
+#contact svg {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
