@@ -1,7 +1,16 @@
 import { defineConfig } from 'vite'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  base: '/saadk555.github.io/',
+  // Add the plugins array from your Tailwind config
+  plugins: [
+    tailwindcss(),
+  ],
+  
+  // Keep your existing base path
+  base: '/',
+  
+  // Keep your existing build and optimization settings
   build: {
     rollupOptions: {
       output: {
